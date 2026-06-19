@@ -34,7 +34,7 @@ make verify         # end-to-end smoke test — expect "ALL PASS" (16 checks)
 make run            # Medallion pipeline: dedup + quarantine + Gold
 make flywheel       # agent traces -> Bronze -> eval/DPO datasets + PIT features
 make kg             # bonus: knowledge graph from docs
-make test           # pytest (18 tests)
+make test           # pytest (20 tests)
 ```
 
 Without `make`:

@@ -21,19 +21,32 @@ def build_dag(con: duckdb.DuckDBPyConnection) -> DAG:
     @dag.task("extract")
     def _extract():
         n = extract_to_bronze(con)
-        return con.execute(f"SELECT * FROM {config.BRONZE}").fetchdf()
+        return {
+            "rows_in": n,
+            "bronze_df": con.execute(f"SELECT * FROM {config.BRONZE}").fetchdf(),
+        }
 
     @dag.task("validate", upstream=["extract"])
-    def _validate(bronze_df):
-        clean, bad = validate(bronze_df)
+    def _validate(extracted):
+        clean, bad = validate(extracted["bronze_df"])
         n_bad = write_quarantine(bad)
-        return {"clean": clean, "n_quarantined": n_bad}
+        return {
+            "clean": clean,
+            "n_quarantined": n_bad,
+            "rows_in": extracted["rows_in"],
+        }
 
     @dag.task("transform", upstream=["validate"])
     def _transform(v):
         stats = write_silver(con, v["clean"])
         n_gold = write_gold(con)
-        return {**stats, "gold_rows": n_gold, "n_quarantined": v["n_quarantined"]}
+        return {
+            **stats,
+            "rows_in": v["rows_in"],
+            "clean_rows": stats["rows_in"],
+            "gold_rows": n_gold,
+            "n_quarantined": v["n_quarantined"],
+        }
 
     @dag.task("report", upstream=["transform"])
     def _report(t):

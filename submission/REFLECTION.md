@@ -20,3 +20,21 @@ Answer briefly, in your own words. This is graded on reasoning, not length.
    one where the graph is overkill.
 
 _Write your answers below._
+
+The most silent failure is trace flattening: if child spans lose `trace_id`,
+status, split, or token fields, the pipeline still runs but summaries, eval
+rows, and DPO pairs become biased. I would detect it with span-count invariants,
+per-trace rollups, and alerts on missing root outputs or unexpected status mix.
+
+If decontamination is skipped, the model trains on prompts that are also in the
+eval set. Offline metrics would look better because the model memorized grading
+examples, but production accuracy would not improve on new questions.
+
+A dangerous point-in-time example is credit scoring with "current total debt" or
+"latest delinquency count". Joining the newest value into old training rows leaks
+future behavior that was unavailable when the decision was made.
+
+The graph answers multi-hop questions like "Where does a widget ship from?"
+because it can traverse widget -> accessory -> Hanoi fulfillment center. A graph
+is overkill for simple one-hop lookup such as "What is the widget return window?",
+where vector or keyword retrieval is enough.

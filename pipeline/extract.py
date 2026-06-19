@@ -5,16 +5,18 @@ downstream layer is wrong, we can always rebuild from Bronze. This is why
 'always keep the raw layer' is Rule #1 of Medallion architecture.
 """
 import duckdb
+import pandas as pd
 from . import config
 
 
 def extract_to_bronze(con: duckdb.DuckDBPyConnection) -> int:
+    raw = pd.read_csv(config.RAW_CSV, dtype=str)
+    con.register("raw_orders_df", raw)
     con.execute(f"DROP TABLE IF EXISTS {config.BRONZE}")
     con.execute(
         f"""
         CREATE TABLE {config.BRONZE} AS
-        SELECT * FROM read_csv_auto('{config.RAW_CSV.as_posix()}',
-                                    header=true, all_varchar=true)
+        SELECT * FROM raw_orders_df
         """
     )
     (n,) = con.execute(f"SELECT count(*) FROM {config.BRONZE}").fetchone()

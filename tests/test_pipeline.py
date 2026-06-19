@@ -3,6 +3,7 @@ import duckdb
 import pandas as pd
 import pytest
 
+import main
 from pipeline import config
 from pipeline.validate import validate, ORDER_SCHEMA
 from pipeline.transform import write_silver, write_gold
@@ -21,6 +22,18 @@ def con():
 def test_extract_loads_all_raw_rows(con):
     n = extract_to_bronze(con)
     assert n == 16  # 16 raw rows incl. duplicates + bad records
+
+
+def test_main_reports_bronze_raw_rows(con):
+    stats = main.build_dag(con).run()["report"]
+    assert stats["rows_in"] == 16
+    assert stats["n_quarantined"] == 3
+
+
+def test_main_file_backed_warehouse_reports_bronze_raw_rows():
+    stats = main.main()
+    assert stats["rows_in"] == 16
+    assert stats["n_quarantined"] == 3
 
 
 def test_gate_quarantines_bad_records():

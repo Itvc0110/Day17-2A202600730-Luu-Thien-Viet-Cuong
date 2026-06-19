@@ -34,7 +34,7 @@ make verify         # smoke test end-to-end — kỳ vọng "ALL PASS" (16 check
 make run            # pipeline Medallion: dedup + quarantine + Gold
 make flywheel       # agent traces -> Bronze -> dataset eval/DPO + PIT features
 make kg             # bonus: knowledge graph từ docs
-make test           # pytest (18 tests)
+make test           # pytest (20 tests)
 ```
 
 Không dùng `make`:
